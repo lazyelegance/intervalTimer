@@ -16,19 +16,54 @@ class MyHomePage extends StatelessWidget {
     });
   }
 
+  deleteTimer(String timerId) {
+    Firestore.instance.runTransaction((Transaction transaction) async {
+      DocumentReference reference =
+          Firestore.instance.document('counters/$timerId');
+      await transaction.delete(reference);
+    });
+  }
+
+  resetTimer(String timerId) {
+    print('counters/$timerId');
+
+    Firestore.instance.runTransaction((Transaction transaction) async {
+      DocumentReference reference =
+          Firestore.instance.document('counters/$timerId');
+      // DocumentSnapshot freshSnap = await transaction.get(reference);
+      await transaction.update(reference, {'startTime': new DateTime.now()});
+    });
+  }
+
+// onTap: () => Firestore.instance.runTransaction((transaction) async {
+//       DocumentSnapshot freshSnap =
+//           await transaction.get(document.reference);
+//       await transaction
+//           .update(freshSnap.reference, {'votes': freshSnap['votes'] + 1});
+//     }),
+// new Text(document['name'])
+
+// TimerText(
+//               startTime: startTime,
+//             )
+
   Widget _buildListItem(BuildContext context, DocumentSnapshot document) {
     var startTime = document['startTime'];
+    var name = document['name'];
+    var timerId = document.documentID;
 
     return new ListTile(
       key: new ValueKey(document.documentID),
-      title: _buildCard(document['name'], startTime),
-    );
-  }
-
-  Widget _buildCard(String name, startTime) {
-    return TimerCard(
-      name: name,
-      startTime: startTime,
+      title: TimerCard(
+        name: name,
+        startTime: startTime,
+        deleteAction: () {
+          deleteTimer(timerId);
+        },
+        resetAction: () {
+          resetTimer(timerId);
+        },
+      ),
     );
   }
 
