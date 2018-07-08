@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class AddTimerDialog extends StatefulWidget {
   @override
@@ -11,8 +12,7 @@ class AddTimerDialogState extends State<AddTimerDialog> {
   final _timeNameController = TextEditingController();
 
   DateTime _timerStartDate = new DateTime.now();
-
-  bool _groupValue = true;
+  String _timerName = '';
 
   @override
   Widget build(BuildContext context) {
@@ -26,67 +26,85 @@ class AddTimerDialogState extends State<AddTimerDialog> {
         children: <Widget>[
           TextField(
             controller: _timeNameController,
+            onChanged: (value) {
+              setState(() {
+                _timerName = value;
+              });
+            },
             decoration: InputDecoration(
               filled: true,
               labelText: 'timer name',
             ),
           ),
-          SizedBox(height: 12.0),
           Row(
-            mainAxisAlignment: MainAxisAlignment.end,
             children: <Widget>[
-              Text('start with current time'),
-              Checkbox(
-                value: _groupValue,
-                onChanged: (val) async {
-                  DateTime datePicked;
-                  TimeOfDay timePicked;
-                  setState(() {
-                    _groupValue = val;
-                  });
-                  if (!val) {
-                    datePicked = await showDatePicker(
-                        context: context,
-                        initialDate: now,
-                        firstDate: now.subtract(new Duration(days: 30)),
-                        lastDate: now,
-                        initialDatePickerMode: DatePickerMode.day);
-                    if (datePicked != null) {
-                      timePicked = await showTimePicker(
-                        context: context,
-                        initialTime: new TimeOfDay.now(),
-                      );
-                      setState(() {
-                        _timerStartDate = datePicked
-                            .add(new Duration(hours: timePicked.hour))
-                            .add(new Duration(minutes: timePicked.minute));
-                      });
-                    }
-                  } else {
-                    setState(() {
-                      _timerStartDate = new DateTime.now();
-                    });
-                  }
-                },
-              ),
+              Expanded(
+                child: Container(
+                  padding: EdgeInsets.all(10.0),
+                  margin: EdgeInsets.only(top: 10.0, bottom: 10.0),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: <Widget>[
+                      FlatButton(
+                        color: Colors.blue,
+                        onPressed: () async {
+                          DateTime datePicked;
+                          TimeOfDay timePicked;
+                          datePicked = await showDatePicker(
+                              context: context,
+                              initialDate: now,
+                              firstDate: now.subtract(new Duration(days: 30)),
+                              lastDate: now,
+                              initialDatePickerMode: DatePickerMode.day);
+                          if (datePicked != null) {
+                            timePicked = await showTimePicker(
+                              context: context,
+                              initialTime: new TimeOfDay.now(),
+                            );
+                            setState(() {
+                              _timerStartDate = datePicked
+                                  .add(new Duration(hours: timePicked.hour))
+                                  .add(
+                                      new Duration(minutes: timePicked.minute));
+                            });
+                          }
+                        },
+                        child: Text(
+                          new DateFormat.yMMMd()
+                              .add_Hm()
+                              .format(_timerStartDate)
+                              .toString(),
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: () async {
+                          setState(() {
+                            _timerStartDate = now;
+                          });
+                        },
+                        icon: Icon(Icons.restore),
+                      )
+                    ],
+                  ),
+                ),
+              )
             ],
           ),
-          Text(_timerStartDate.toString()),
           SizedBox(height: 12.0),
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: <Widget>[
               RaisedButton(
                 padding: EdgeInsets.all(8.0),
-                onPressed: _timeNameController.value.text != ''
+                onPressed: _timerName != ''
                     ? () {
-                        Navigator.pop(context, {
-                          "name": _timeNameController.value.text,
-                          "startTime": _timerStartDate
-                        });
+                        Navigator.pop(context,
+                            {"name": _timerName, "startTime": _timerStartDate});
                       }
                     : null,
-                child: Text('DONE'),
+                child: Text('ADD'),
               ),
             ],
           )
